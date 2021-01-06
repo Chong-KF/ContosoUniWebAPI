@@ -1,0 +1,355 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title></title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+    <!--<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>-->
+    <script src="js/myjs.js"></script>
+    <style>
+        .jumbotron {
+            background-color: lightblue;
+        }
+
+        .navbar-toggler-icon {
+            background-image: url("data:image/svg+xml;charset=utf8,%3Csvg viewBox='0 0 32 32' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath stroke='rgba(255,102,203, 0.5)' stroke-width='2' stroke-linecap='round' stroke-miterlimit='10' d='M4 8h24M4 16h24M4 24h24'/%3E%3C/svg%3E");
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <nav class="navbar navbar-expand-md navbar-light bg-lignt">
+            <!-- Brand -->
+            <a class="navbar-brand" href="index.html">Contoso University</a>
+
+            <!-- Toggler/collapsibe Button -->
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#collapsibleNavbar">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <!-- Navbar links -->
+            <div class="collapse navbar-collapse" id="collapsibleNavbar">
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link" href="student.html">Student</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="Course.html">Course</a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+        <div class="jumbotron">
+            <h1 class="display-4">Contoso University</h1>
+            <h1 class="display-5">Student Records</h1>
+        </div>
+        <div class="row">
+            <div class="col-sm-12">
+                <table id="tbl" class="table">
+                    <thead><tr><th>ID</th><th>LastName</th><th>FirstName</th><th>Enroll Date</th><th>Actions</th></tr></thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-sm-6">
+                <input type="button" class="btn btn-sm btn-outline-primary" value="Refresh" onclick="api_Get()" />
+                <input type="button" class="btn btn-sm btn-outline-primary" value="Add New" data-target="#AddNewModel" onclick="AddNew()" />
+            </div>
+            <div class="col-sm-6">
+                <ul id="tblpage" class="pagination pagination-sm justify-content-end"></ul>
+            </div>
+        </div>
+        <div class="row">
+            <br />
+        </div>
+        <!-- The Modal -->
+        <div class="modal fade" id="AddNewModel">
+            <div class="modal-dialog modal-dialog-centered" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Add New Student</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="container-fluid">
+                            <div id='mlname'>Last Name: </div>
+                            <div><input type='text' class='form-control' id='mtxtlname' value=''></div>
+                            <div id='mfname'>First Name: </div>
+                            <div><input type='text' class='form-control' id='mtxtfname' value=''></div>
+                            <div id='mdate'>Enrollment Date: </div>
+                            <div><input type='date' class='form-control' id='mtxtdate' value=''></div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-primary" id="cmdAdd" onclick="CheckB4Post()">Save</button>
+                        <button type="button" class="btn btn-secondary" data-dismiss="model" onclick="CloseAddModel()">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal fade" id="AlertModel">
+            <div class="modal-dialog modal-dialog-centered" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Alert</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="container-fluid">
+                            <div id="mtxtalert"></div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button id="malertComfirm" type="button" class="btn btn-primary" data-dismiss="model" onclick="">Comfirm</button>
+                        <button type="button" class="btn btn-secondary" data-dismiss="model" onclick="CloseAlertModel()">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        var datatable = {};
+        var rownum = 10;
+
+        $(document).ready(function () {
+            $('[data-toggle="tooltip"]').tooltip();  
+            api_Get();
+        });
+
+        function api_Get() {
+            $.ajax({
+                url: API + "Students/",
+                type: 'GET',
+                success: function (result, status, xhr) {
+                    datatable = result;
+                    ShowList(1);
+                },
+                error: function (xhr, status, error) {
+                    ShowError(xhr);
+                }
+            })
+        }
+
+        function api_Post() {
+            var student = {};
+            student.lastName = $("#mtxtlname").val();
+            student.firstName = $("#mtxtfname").val();
+            student.enrollmentDate = $("#mtxtdate").val();
+            $.ajax({
+                url: API + "Students",
+                type: "POST",
+                contentType: "application/json",
+                data: JSON.stringify(student),
+                success: function (result, status, xhr) {
+                    datatable.push(result);
+                    ShowList('L'); //show last page
+                },
+                error: function (xhr, status, error) {
+                    ShowError(xhr);
+                }
+            });
+            CloseAddModel()
+        }
+
+        function api_Put(id) {
+            var student = {};
+            student.id = id;
+            student.lastName = $("#txtlname").val();
+            student.firstName = $("#txtfname").val();
+            student.enrollmentDate = $("#txtdate").val();
+            var request = $.ajax({
+                url: API + "Students/" + id,
+                type: "PUT",
+                contentType: "application/json",
+                data: JSON.stringify(student),
+                success: function (result, status, xhr) {
+                    CloseAlertModel();
+                    UpdateEdit(id, result);
+                },
+                error: function (xhr, status, error) {
+                    ShowError(xhr);
+                    CancelEdit();
+                }
+            });
+        }
+
+        function api_Delete(id) {
+            $.ajax({
+                url: API + "Students/" + id,
+                type: 'DELETE',
+                success: api_Get,
+                error: function (xhr, status, error) {
+                    ShowError(xhr);
+                }
+            })
+        }
+
+        function ShowError(res) {
+            let s = "";
+            try {
+                let objxhr = JSON.parse(res.responseText);
+                s = "status: " + objxhr.status + "<br />title: " + objxhr.title + "<br />traceId: " + objxhr.traceId + "<br />type: " + objxhr.type + "<br />errors: " + objxhr.errors
+            }
+            catch (err) {
+                s = "status: " + res.status + " " + res.statusText + "<br /> " + res.responseText.slice(0, 150) + "......";
+            }
+            AlertModel(s, "");
+        }
+
+        function AddNew() {
+            $('#AddNewModel').modal();
+            //$("#mtxtdate").datepicker({ dateFormat: 'yy-mm-dd' });
+        }
+
+        function CheckB4Post() {
+            var flag = true;
+            if ($('#mtxtlname').val().length == 0) {
+                $('mlname').html("Last Name: <span style = 'color:red'><strong>Cannot be empty<strong></span>")
+                flag = false;
+            }
+            if ($('#mtxtfname').val().length == 0) {
+                $('#mfname').html("First Name: <span style = 'color:red'><strong>Cannot be empty<strong></span>")
+                flag = false;
+            }
+            if ($('#mtxtdate').val().length == 0) {
+                $('#mmdate').html("Enrollment Date: <span style='color:red'><strong>Cannot be empty<strong></span>")
+                flag = false;
+            }
+            if (flag) api_Post();
+        }
+
+        function DelData(id) {
+            var n = "<strong>" + $('#tdlname' + id).html() + " " + $('#tdfname' + id).html() + "</strong>"
+            AlertModel("Please comfirm to delete <br />" + n, "api_Delete(" + id + ")")
+        }
+
+        function AlertModel(str, link) {
+            $('#AlertModel').modal();
+            $('#mtxtalert').html(str);
+            if (link.length > 0) {
+                $("#malertComfirm").attr("onclick", link);
+                $("#malertComfirm").show();
+            } else {
+                $("#malertComfirm").attr("onclick", "");
+                $("#malertComfirm").hide();
+            }
+        }
+
+        function CloseAlertModel() {
+            $('#AlertModel').modal('hide');
+            $('#mtxtalert').html("");
+            $("#malertComfirm").attr("onclick", "");
+        }
+
+        function ShowList(pg) {
+            //do Pagination
+            $("#tblpage").empty();
+            let pages = 0;
+            if (datatable.length % rownum > 0) {
+                pages = Math.floor(datatable.length / rownum) + 1;
+            } else {
+                pages = datatable.length / rownum;
+            }
+            if (pg == 'L') {
+                pg = pages;
+            }
+            $('#tblpage').data('active', pg); //save current page status
+            if (pg == 1) {
+                $("#tblpage").append("<li class='page-item disabled'><a class='page-link' href='#' onclick=''><<</a></li>");
+            } else {
+                $("#tblpage").append("<li class='page-item'><a class='page-link' href='#' onclick='ShowList(" + (pg - 1) + ")'><<</a></li>");
+            }  
+            for (let i = 1; i <= pages; i++) {
+                let li = "";
+                if ($('#tblpage').data('active') == i) {
+                    li = "<li class='page-item active'><a class='page-link' href='#' onclick='ShowList("+ i +")'>" + i + "</a></li>";
+                } else {
+                    li = "<li class='page-item'><a class='page-link' href='#' onclick='ShowList(" + i + ")'>" + i + "</a></li>";
+                }
+                $("#tblpage").append(li);
+            }
+            if (pg == pages) {
+                $("#tblpage").append("<li class='page-item disabled'><a class='page-link' href='#' onclick=''>>></a></li>");
+            } else {
+                $("#tblpage").append("<li class='page-item'><a class='page-link' href='#' onclick='ShowList(" + (pg + 1) + ")'>>></a></li>");
+            }  
+
+            //Clear table
+            $("#tbl tbody").empty();
+
+            let start = pg * rownum - (rownum - 1);
+            let end = pg * rownum;
+            if (datatable.length < end) end = datatable.length;
+            for (let i = start-1; i < end; i++) {
+                addrow(datatable[i]);
+            }
+        }
+
+        function addrow(row) {
+            var TableRow = "<tr>";
+            TableRow += "<td id='tdid" + row.id + "'>" + row.id + "</td>";
+            TableRow += "<td id='tdlname" + row.id + "'>" + row.lastName + "</td>";
+            TableRow += "<td id='tdfname" + row.id + "'>" + row.firstName + "</td>";
+            TableRow += "<td id='tddate" + row.id + "'>" + row.enrollmentDate.slice(0, 10) + "</td>";
+            TableRow += "<td id='tdaction" + row.id + "'>";
+            TableRow += ButtonEdit("EditData(" + row.id + ")") + " ";
+            TableRow += ButtonDel("DelData(" + row.id + ")");
+            TableRow += ButtonDetails("/studentdetails.html?id="+ row.id);
+            TableRow += "</td></tr> ";
+            $("#tbl").append(TableRow);
+        }
+
+        function EditData(id) {
+            // check if an update button created anywhere
+            if ($('#cmdUpdate').length > 0) {
+                CancelEdit($('#cmdUpdate').data('id'));
+            }
+            let tlname = $('#tdlname' + id).html();
+            let tfname = $('#tdfname' + id).html();
+            let tdate = $('#tddate' + id).html();
+            $('#tdlname' + id).html("<input type='text' class='form-control' id='txtlname' value='" + tlname + "'>");
+            $('#tdfname' + id).html("<input type='text' class='form-control' id='txtfname' value='" + tfname + "'>");
+            $('#tddate' + id).html("<input type='date' class='form-control' id='txtdate' value='" + tdate + "'>");
+            $('#tdaction' + id).html(ButtonOK("cmdUpdate", "api_Put(" + id + ")") + " " + ButtonCancel("CancelEdit(" + id + ")"));
+            $('#cmdUpdate').data('id', id);
+            $('#txtlname').data('txt', tlname); //backup text
+            $('#txtfname').data('txt', tfname);
+            $('#txtdate').data('txt', tdate);
+            //$("#txtdate").datepicker({ dateFormat: 'yy-mm-dd' });
+        }
+
+        function UpdateEdit(id, data) {
+            $('#tdlname' + id).html(data.lastName);
+            $('#tdfname' + id).html(data.firstName);
+            $('#tddate' + id).html(data.enrollmentDate.slice(0, 10));
+            $('#tdaction' + id).html(ButtonEdit("EditData(" + id + ")") + " " + ButtonDel("DelData(" + id + ")") + " " + ButtonDetails("/studentdetails.html?id=" + id));
+
+        }
+
+        function CancelEdit(id) {
+            //$("#cmdupdate").attr("onclick", "");
+            $('#tdlname' + id).html($('#txtlname').data('txt'));
+            $('#tdfname' + id).html($('#txtfname').data('txt'));
+            $('#tddate' + id).html($('#txtdate').data('txt'));
+            $('#tdaction' + id).html(ButtonEdit("EditData(" + id + ")") + " " + ButtonDel("DelData(" + id + ")") + " " + ButtonDetails("/studentdetails.html?id=" + id));
+        }
+
+        function CloseAddModel() {
+            $('#AddNewModel').modal('hide');
+            $("#mtxtlname").val("");
+            $("#mtxtfname").val("");
+            $("#mtxtdate").val("");
+        }
+    </script>
+</body>
+</html>
