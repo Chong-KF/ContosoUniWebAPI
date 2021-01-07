@@ -10,10 +10,12 @@ This is the a project for PROGRAMMING IN HTML5 WITH JAVASCRIPT AND CSS3
   * Table + Pagination
 * Jquery 
   * sending Ajax API request
-* ASP.Net Core Web API - as JSON services provider
+* ASP.Net Core Web API - as JSON service provider
   * Models
   * Controllers
 
+## Demo
+![](demo.gif)
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details
