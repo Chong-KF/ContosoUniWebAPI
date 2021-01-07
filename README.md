@@ -15,6 +15,13 @@ This is the a project for PROGRAMMING IN HTML5 WITH JAVASCRIPT AND CSS3
   * Models
   * Controllers
 
+## API Call from browser
+
+* http://localhost/api/Students - GET all student records
+* http://localhost/api/Students/1 - GET single student record together with this student enrollment records
+* http://localhost/api/Courses - GET all course records
+* GET, POST, PUT, DELETE implemented by Ajax in web application
+
 ## Databse Diagram
 
 ![](DatabaseDiagram.png)
