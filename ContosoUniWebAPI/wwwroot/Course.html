@@ -119,13 +119,16 @@
     </div>
     <script>
         var datatable = {};
-        var rownum = 10;
+        var rownum = 8;
 
         $(document).ready(function () {
             $('[data-toggle="tooltip"]').tooltip();  
             api_Get();
         });
 
+        //------------------
+        //API Call functions
+        //------------------
         function api_Get() {
             $.ajax({
                 url: API + "Courses/",
@@ -195,6 +198,9 @@
             })
         }
 
+        //---------------------
+        //Alert Model functions
+        //---------------------
         function ShowError(res) {
             let s = "";
             try {
@@ -219,6 +225,75 @@
             }
         }
 
+        function CloseAlertModel() {
+            $('#AlertModel').modal('hide');
+            $('#mtxtalert').html("");
+            $("#malertComfirm").attr("onclick", "");
+        }
+
+        //-------------------------------
+        //Display record function for GET
+        //-------------------------------
+        function ShowList(pg) {
+            //do Pagination
+            $("#tblpage").empty();
+            let pages = 0;
+            if (datatable.length % rownum > 0) {
+                pages = Math.floor(datatable.length / rownum) + 1;
+            } else {
+                pages = datatable.length / rownum;
+            }
+            if (pg == 'L') {
+                pg = pages;
+            }
+            $('#tblpage').data('active', pg); //save current page status
+            if (pg == 1) {
+                $("#tblpage").append("<li class='page-item disabled'><a class='page-link' href='#' onclick=''><<</a></li>");
+            } else {
+                $("#tblpage").append("<li class='page-item'><a class='page-link' href='#' onclick='ShowList(" + (pg - 1) + ")'><<</a></li>");
+            }
+            for (let i = 1; i <= pages; i++) {
+                let li = "";
+                if ($('#tblpage').data('active') == i) {
+                    li = "<li class='page-item active'><a class='page-link' href='#' onclick='ShowList(" + i + ")'>" + i + "</a></li>";
+                } else {
+                    li = "<li class='page-item'><a class='page-link' href='#' onclick='ShowList(" + i + ")'>" + i + "</a></li>";
+                }
+                $("#tblpage").append(li);
+            }
+            if (pg == pages) {
+                $("#tblpage").append("<li class='page-item disabled'><a class='page-link' onclick=''>>></a></li>");
+            } else {
+                $("#tblpage").append("<li class='page-item'><a class='page-link' onclick='ShowList(" + (pg + 1) + ")'>>></a></li>");
+            }
+
+            //Clear table
+            $("#tbl tbody").empty();
+
+            let start = pg * rownum - (rownum - 1);
+            let end = pg * rownum;
+            if (datatable.length < end) end = datatable.length;
+            for (let i = start - 1; i < end; i++) {
+                addrow(datatable[i]);
+            }
+        }
+
+        function addrow(row) {
+            var TableRow = "<tr>";
+            TableRow += "<td id='tdid" + row.id + "'>" + row.id + "</td>";
+            TableRow += "<td id='tdtitle" + row.id + "'>" + row.title + "</td>";
+            TableRow += "<td id='tdcredits" + row.id + "'>" + row.credits + "</td>";
+            TableRow += "<td id='tdaction" + row.id + "'>";
+            TableRow += ButtonEdit("EditData(" + row.id + ")") + " ";
+            TableRow += ButtonDel("DelData(" + row.id + ")");
+            //TableRow += ButtonDetails("/coursedetails.html?id="+ row.id);
+            TableRow += "</td></tr> ";
+            $("#tbl").append(TableRow);
+        }
+
+        //---------------------------------
+        //Add new record functions for POST
+        //---------------------------------
         function AddNew() {
             $('#AddNewModel').modal();
         }
@@ -245,69 +320,20 @@
             if (flag) api_Post();
         }
 
-
-        function DelData(id) {
-            var n = "<strong>" + $('#tdid' + id).html() + " " + $('#tdtitle' + id).html() + "</strong>"
-            AlertModel("Please comfirm to delete <br />" + n, "api_Delete(" + id + ")");
+        function CloseAddModel() {
+            $('#AddNewModel').modal('hide');
+            $("#mtxtID").val("");
+            $("#mtxtTitle").val("");
+            $("#mtxtCredits").val("");
+            $('#mCode').html("Code:");
+            $('#mTitle').html("Title:");
+            $('#mCredits').html("Credits:");
         }
 
-        function ShowList(pg) {
-            //do Pagination
-            $("#tblpage").empty();
-            let pages = 0;
-            if (datatable.length % rownum > 0) {
-                pages = Math.floor(datatable.length / rownum) + 1;
-            } else {
-                pages = datatable.length / rownum;
-            }
-            if (pg == 'L') {
-                pg = pages;
-            }
-            $('#tblpage').data('active', pg); //save current page status
-            if (pg == 1) {
-                $("#tblpage").append("<li class='page-item disabled'><a class='page-link' href='#' onclick=''><<</a></li>");
-            } else {
-                $("#tblpage").append("<li class='page-item'><a class='page-link' href='#' onclick='ShowList(" + (pg - 1) + ")'><<</a></li>");
-            }  
-            for (let i = 1; i <= pages; i++) {
-                let li = "";
-                if ($('#tblpage').data('active') == i) {
-                    li = "<li class='page-item active'><a class='page-link' href='#' onclick='ShowList("+ i +")'>" + i + "</a></li>";
-                } else {
-                    li = "<li class='page-item'><a class='page-link' href='#' onclick='ShowList(" + i + ")'>" + i + "</a></li>";
-                }
-                $("#tblpage").append(li);
-            }
-            if (pg == pages) {
-                $("#tblpage").append("<li class='page-item disabled'><a class='page-link' onclick=''>>></a></li>");
-            } else {
-                $("#tblpage").append("<li class='page-item'><a class='page-link' onclick='ShowList(" + (pg + 1) + ")'>>></a></li>");
-            }  
 
-            //Clear table
-            $("#tbl tbody").empty();
-            
-            let start = pg * rownum - (rownum - 1);
-            let end = pg * rownum;
-            if (datatable.length < end) end = datatable.length;
-            for (let i = start - 1; i < end; i++) {
-                addrow(datatable[i]);
-            }
-        }
-
-        function addrow(row) {
-            var TableRow = "<tr>";
-            TableRow += "<td id='tdid" + row.id + "'>" + row.id + "</td>";
-            TableRow += "<td id='tdtitle" + row.id + "'>" + row.title + "</td>";
-            TableRow += "<td id='tdcredits" + row.id + "'>" + row.credits + "</td>";
-            TableRow += "<td id='tdaction" + row.id + "'>";
-            TableRow += ButtonEdit("EditData(" + row.id + ")") + " ";
-            TableRow += ButtonDel("DelData(" + row.id + ")");
-            //TableRow += ButtonDetails("/coursedetails.html?id="+ row.id);
-            TableRow += "</td></tr> ";
-            $("#tbl").append(TableRow);
-        }
-
+        //-----------------------------
+        //Edit record functions for PUT
+        //-----------------------------
         function EditData(id) {
             // check if an update button created anywhere
             if ($('#cmdUpdate').length > 0) {
@@ -341,6 +367,7 @@
                 AlertModel(msg, "");
             }
         }
+
         function UpdateEdit(id, data) {
             $('#tdtitle' + id).html(data.title);
             $('#tdcredits' + id).html(data.credits);
@@ -355,20 +382,13 @@
             $('#tdaction' + id).html(ButtonEdit("EditData(" + id + ")") + " " + ButtonDel("DelData(" + id + ")")); //+ " " + ButtonDetails("/coursedetails.html?id=" + id));
         }
 
-        function CloseAddModel() {
-            $('#AddNewModel').modal('hide');
-            $("#mtxtID").val("");
-            $("#mtxtTitle").val("");
-            $("#mtxtCredits").val("");
-            $('#mCode').html("Code:");
-            $('#mTitle').html("Title:");
-            $('#mCredits').html("Credits:");
-         }
 
-        function CloseAlertModel() {
-            $('#AlertModel').modal('hide');
-            $('#mtxtalert').html("");
-            $("#malertComfirm").attr("onclick", "");
+        //-----------------------
+        //Delete record functions
+        //-----------------------
+        function DelData(id) {
+            var n = "<strong>" + $('#tdid' + id).html() + " " + $('#tdtitle' + id).html() + "</strong>"
+            AlertModel("Please comfirm to delete <br />" + n, "api_Delete(" + id + ")");
         }
     </script>
 </body>

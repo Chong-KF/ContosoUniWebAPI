@@ -119,13 +119,16 @@
     </div>
     <script>
         var datatable = {};
-        var rownum = 10;
+        var rownum = 8;
 
         $(document).ready(function () {
             $('[data-toggle="tooltip"]').tooltip();  
             api_Get();
         });
 
+        //------------------
+        //API Call functions
+        //------------------
         function api_Get() {
             $.ajax({
                 url: API + "Students/",
@@ -194,6 +197,27 @@
             })
         }
 
+        //---------------------
+        //Alert Model functions
+        //---------------------
+        function AlertModel(str, link) {
+            $('#AlertModel').modal();
+            $('#mtxtalert').html(str);
+            if (link.length > 0) {
+                $("#malertComfirm").attr("onclick", link);
+                $("#malertComfirm").show();
+            } else {
+                $("#malertComfirm").attr("onclick", "");
+                $("#malertComfirm").hide();
+            }
+        }
+
+        function CloseAlertModel() {
+            $('#AlertModel').modal('hide');
+            $('#mtxtalert').html("");
+            $("#malertComfirm").attr("onclick", "");
+        }
+
         function ShowError(res) {
             let s = "";
             try {
@@ -206,6 +230,70 @@
             AlertModel(s, "");
         }
 
+        //-------------------------------
+        //Display record function for GET
+        //-------------------------------
+        function ShowList(pg) {
+            //do Pagination
+            $("#tblpage").empty();
+            let pages = 0;
+            if (datatable.length % rownum > 0) {
+                pages = Math.floor(datatable.length / rownum) + 1;
+            } else {
+                pages = datatable.length / rownum;
+            }
+            if (pg == 'L') {
+                pg = pages;
+            }
+            $('#tblpage').data('active', pg); //save current page status
+            if (pg == 1) {
+                $("#tblpage").append("<li class='page-item disabled'><a class='page-link' href='#' onclick=''><<</a></li>");
+            } else {
+                $("#tblpage").append("<li class='page-item'><a class='page-link' href='#' onclick='ShowList(" + (pg - 1) + ")'><<</a></li>");
+            }
+            for (let i = 1; i <= pages; i++) {
+                let li = "";
+                if ($('#tblpage').data('active') == i) {
+                    li = "<li class='page-item active'><a class='page-link' href='#' onclick='ShowList(" + i + ")'>" + i + "</a></li>";
+                } else {
+                    li = "<li class='page-item'><a class='page-link' href='#' onclick='ShowList(" + i + ")'>" + i + "</a></li>";
+                }
+                $("#tblpage").append(li);
+            }
+            if (pg == pages) {
+                $("#tblpage").append("<li class='page-item disabled'><a class='page-link' href='#' onclick=''>>></a></li>");
+            } else {
+                $("#tblpage").append("<li class='page-item'><a class='page-link' href='#' onclick='ShowList(" + (pg + 1) + ")'>>></a></li>");
+            }
+
+            //Clear table
+            $("#tbl tbody").empty();
+
+            let start = pg * rownum - (rownum - 1);
+            let end = pg * rownum;
+            if (datatable.length < end) end = datatable.length;
+            for (let i = start - 1; i < end; i++) {
+                addrow(datatable[i]);
+            }
+        }
+
+        function addrow(row) {
+            var TableRow = "<tr>";
+            TableRow += "<td id='tdid" + row.id + "'>" + row.id + "</td>";
+            TableRow += "<td id='tdlname" + row.id + "'>" + row.lastName + "</td>";
+            TableRow += "<td id='tdfname" + row.id + "'>" + row.firstName + "</td>";
+            TableRow += "<td id='tddate" + row.id + "'>" + row.enrollmentDate.slice(0, 10) + "</td>";
+            TableRow += "<td id='tdaction" + row.id + "'>";
+            TableRow += ButtonEdit("EditData(" + row.id + ")") + " ";
+            TableRow += ButtonDel("DelData(" + row.id + ")");
+            TableRow += ButtonDetails("/studentdetails.html?id=" + row.id);
+            TableRow += "</td></tr> ";
+            $("#tbl").append(TableRow);
+        }
+
+        //---------------------------------
+        //Add new record functions for POST
+        //---------------------------------
         function AddNew() {
             $('#AddNewModel').modal();
             //$("#mtxtdate").datepicker({ dateFormat: 'yy-mm-dd' });
@@ -228,87 +316,17 @@
             if (flag) api_Post();
         }
 
-        function DelData(id) {
-            var n = "<strong>" + $('#tdlname' + id).html() + " " + $('#tdfname' + id).html() + "</strong>"
-            AlertModel("Please comfirm to delete <br />" + n, "api_Delete(" + id + ")")
+        function CloseAddModel() {
+            $('#AddNewModel').modal('hide');
+            $("#mtxtlname").val("");
+            $("#mtxtfname").val("");
+            $("#mtxtdate").val("");
         }
 
-        function AlertModel(str, link) {
-            $('#AlertModel').modal();
-            $('#mtxtalert').html(str);
-            if (link.length > 0) {
-                $("#malertComfirm").attr("onclick", link);
-                $("#malertComfirm").show();
-            } else {
-                $("#malertComfirm").attr("onclick", "");
-                $("#malertComfirm").hide();
-            }
-        }
 
-        function CloseAlertModel() {
-            $('#AlertModel').modal('hide');
-            $('#mtxtalert').html("");
-            $("#malertComfirm").attr("onclick", "");
-        }
-
-        function ShowList(pg) {
-            //do Pagination
-            $("#tblpage").empty();
-            let pages = 0;
-            if (datatable.length % rownum > 0) {
-                pages = Math.floor(datatable.length / rownum) + 1;
-            } else {
-                pages = datatable.length / rownum;
-            }
-            if (pg == 'L') {
-                pg = pages;
-            }
-            $('#tblpage').data('active', pg); //save current page status
-            if (pg == 1) {
-                $("#tblpage").append("<li class='page-item disabled'><a class='page-link' href='#' onclick=''><<</a></li>");
-            } else {
-                $("#tblpage").append("<li class='page-item'><a class='page-link' href='#' onclick='ShowList(" + (pg - 1) + ")'><<</a></li>");
-            }  
-            for (let i = 1; i <= pages; i++) {
-                let li = "";
-                if ($('#tblpage').data('active') == i) {
-                    li = "<li class='page-item active'><a class='page-link' href='#' onclick='ShowList("+ i +")'>" + i + "</a></li>";
-                } else {
-                    li = "<li class='page-item'><a class='page-link' href='#' onclick='ShowList(" + i + ")'>" + i + "</a></li>";
-                }
-                $("#tblpage").append(li);
-            }
-            if (pg == pages) {
-                $("#tblpage").append("<li class='page-item disabled'><a class='page-link' href='#' onclick=''>>></a></li>");
-            } else {
-                $("#tblpage").append("<li class='page-item'><a class='page-link' href='#' onclick='ShowList(" + (pg + 1) + ")'>>></a></li>");
-            }  
-
-            //Clear table
-            $("#tbl tbody").empty();
-
-            let start = pg * rownum - (rownum - 1);
-            let end = pg * rownum;
-            if (datatable.length < end) end = datatable.length;
-            for (let i = start-1; i < end; i++) {
-                addrow(datatable[i]);
-            }
-        }
-
-        function addrow(row) {
-            var TableRow = "<tr>";
-            TableRow += "<td id='tdid" + row.id + "'>" + row.id + "</td>";
-            TableRow += "<td id='tdlname" + row.id + "'>" + row.lastName + "</td>";
-            TableRow += "<td id='tdfname" + row.id + "'>" + row.firstName + "</td>";
-            TableRow += "<td id='tddate" + row.id + "'>" + row.enrollmentDate.slice(0, 10) + "</td>";
-            TableRow += "<td id='tdaction" + row.id + "'>";
-            TableRow += ButtonEdit("EditData(" + row.id + ")") + " ";
-            TableRow += ButtonDel("DelData(" + row.id + ")");
-            TableRow += ButtonDetails("/studentdetails.html?id="+ row.id);
-            TableRow += "</td></tr> ";
-            $("#tbl").append(TableRow);
-        }
-
+        //-----------------------------
+        //Edit record functions for PUT
+        //-----------------------------
         function EditData(id) {
             // check if an update button created anywhere
             if ($('#cmdUpdate').length > 0) {
@@ -320,12 +338,34 @@
             $('#tdlname' + id).html("<input type='text' class='form-control' id='txtlname' value='" + tlname + "'>");
             $('#tdfname' + id).html("<input type='text' class='form-control' id='txtfname' value='" + tfname + "'>");
             $('#tddate' + id).html("<input type='date' class='form-control' id='txtdate' value='" + tdate + "'>");
-            $('#tdaction' + id).html(ButtonOK("cmdUpdate", "api_Put(" + id + ")") + " " + ButtonCancel("CancelEdit(" + id + ")"));
+            $('#tdaction' + id).html(ButtonOK("cmdUpdate", "CheckB4Put(" + id + ")") + " " + ButtonCancel("CancelEdit(" + id + ")"));
             $('#cmdUpdate').data('id', id);
             $('#txtlname').data('txt', tlname); //backup text
             $('#txtfname').data('txt', tfname);
             $('#txtdate').data('txt', tdate);
             //$("#txtdate").datepicker({ dateFormat: 'yy-mm-dd' });
+        }
+
+        function CheckB4Put(id) {
+            var flag = true;
+            var msg = "";
+            if ($('#mtxtlname').val().length == 0) {
+                msg += "Last Name cannot be empty.<br />"
+                flag = false;
+            }
+            if ($('#mtxtfname').val().length == 0) {
+                msg += "First Name cannot be empty.<br />"
+                flag = false;
+            }
+            if ($('#mtxtdate').val().length == 0) {
+                msg += "Enrollment Date cannot be empty.<br />"
+                flag = false;
+            }
+            if (flag) {
+                api_Put(id);
+            } else {
+                AlertModel(msg, "");
+            }
         }
 
         function UpdateEdit(id, data) {
@@ -344,11 +384,12 @@
             $('#tdaction' + id).html(ButtonEdit("EditData(" + id + ")") + " " + ButtonDel("DelData(" + id + ")") + " " + ButtonDetails("/studentdetails.html?id=" + id));
         }
 
-        function CloseAddModel() {
-            $('#AddNewModel').modal('hide');
-            $("#mtxtlname").val("");
-            $("#mtxtfname").val("");
-            $("#mtxtdate").val("");
+        //-----------------------
+        //Delete record functions
+        //-----------------------
+        function DelData(id) {
+            var n = "<strong>" + $('#tdlname' + id).html() + " " + $('#tdfname' + id).html() + "</strong>"
+            AlertModel("Please comfirm to delete <br />" + n, "api_Delete(" + id + ")")
         }
     </script>
 </body>

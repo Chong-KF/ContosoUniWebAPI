@@ -91,228 +91,236 @@
                 </div>
             </div>
      </div>
-        <script>
-            var StudentID = 0;
-            var rownum = 10;
-            var datatable = {};
+    <script>
+        var StudentID = 0;
+        var rownum = 10;
+        var datatable = {};
 
-            $(document).ready(function () {
-                StudentID = new URLSearchParams(window.location.search).get('id');
-                $('[data-toggle="tooltip"]').tooltip();
-                api_Get();
-                //var id = GetParameterValues('id');
-                //alert("id is " + id);
-                //function GetParameterValues(param) {
-                //    var url = window.location.href.slice(window.location.href.indexOf('?') + 1).split('&');
-                //    for (var i = 0; i < url.length; i++) {
-                //        var urlparam = url[i].split('=');
-                //        if (urlparam[0] == param) {
-                //            return urlparam[1];
-                //        }
-                //    }
-                //}
+        $(document).ready(function () {
+            StudentID = new URLSearchParams(window.location.search).get('id');
+            $('[data-toggle="tooltip"]').tooltip();
+            api_Get();
+        });
 
+        //------------------
+        //API Call functions
+        //------------------
+        function api_Get() {
+            $.ajax({
+                url: API + "Students/" + StudentID,
+                type: 'GET',
+                success: function (result, status, xhr) {
+                    datatable = result;
+                    ShowList();
+                },
+                error: function (xhr, status, error) {
+                    ShowError(xhr);
+                }
+            })
+        }
+
+        function api_Post() {
+            var enrollment = {};
+            enrollment.CourseID = $('#cboCourse').val().slice(0, 4);
+            enrollment.StudentID = StudentID;
+            enrollment.Grade = $('#cboGrade').val();
+            $.ajax({
+                url: API + "Enrollments",
+                type: "POST",
+                contentType: "application/json",
+                data: JSON.stringify(enrollment),
+                success: function (result, status, xhr) {
+                    api_Get();
+                },
+                error: function (xhr, status, error) {
+                    ShowError(xhr);
+                }
             });
-            function api_Get() {
+        }
+
+        function api_Put(id) {
+            var enrollment = {};
+            enrollment.id = id;
+            enrollment.CourseID = $('#cboCourse').val().slice(0, 4);
+            enrollment.StudentID = StudentID;
+            enrollment.Grade = $('#cboGrade').val();
+            var request = $.ajax({
+                url: API + "Enrollments/" + id,
+                type: "PUT",
+                contentType: "application/json",
+                data: JSON.stringify(enrollment),
+                success: function (result, status, xhr) {
+                    api_Get();
+                },
+                error: function (xhr, status, error) {
+                    ShowError(xhr);
+                    CancelEdit();
+                }
+            });
+        }
+
+        function api_Delete(id) {
+            $.ajax({
+                url: API + "enrollments/" + id,
+                type: 'DELETE',
+                success: function (result, status, xhr) {
+                    CloseAlertModel();
+                    api_Get();
+                },
+                error: function (xhr, status, error) {
+                    ShowError(xhr);
+                }
+            })
+            CloseAlertModel();
+        }
+
+        function api_GetCourse() {
+            return new Promise(function (resolve, reject) { 
                 $.ajax({
-                    url: API + "Students/" + StudentID,
+                    url: API + "Courses/",
                     type: 'GET',
                     success: function (result, status, xhr) {
-                        datatable = result;
-                        ShowList();
+                        resolve(result);
                     },
                     error: function (xhr, status, error) {
-                        ShowError(xhr);
-                    }
-                })
-            }
-
-            function api_Post() {
-                var enrollment = {};
-                enrollment.CourseID = $('#cboCourse').val().slice(0, 4);
-                enrollment.StudentID = StudentID;
-                enrollment.Grade = $('#cboGrade').val();
-                $.ajax({
-                    url: API + "Enrollments",
-                    type: "POST",
-                    contentType: "application/json",
-                    data: JSON.stringify(enrollment),
-                    success: function (result, status, xhr) {
-                        api_Get();
-                    },
-                    error: function (xhr, status, error) {
-                        ShowError(xhr);
+                        reject(xhr);
                     }
                 });
-            }
+            });
+        }
 
-            function api_Put(id) {
-                var enrollment = {};
-                enrollment.id = id;
-                enrollment.CourseID = $('#cboCourse').val().slice(0, 4);
-                enrollment.StudentID = StudentID;
-                enrollment.Grade = $('#cboGrade').val();
-                var request = $.ajax({
-                    url: API + "Enrollments/" + id,
-                    type: "PUT",
-                    contentType: "application/json",
-                    data: JSON.stringify(enrollment),
-                    success: function (result, status, xhr) {
-                        api_Get();
-                    },
-                    error: function (xhr, status, error) {
-                        ShowError(xhr);
-                        CancelEdit();
-                    }
-                });
-            }
 
-            function api_Delete(id) {
-                $.ajax({
-                    url: API + "enrollments/" + id,
-                    type: 'DELETE',
-                    success: function (result, status, xhr) {
-                        CloseAlertModel();
-                        api_Get();
-                    },
-                    error: function (xhr, status, error) {
-                        ShowError(xhr);
-                    }
-                })
-                CloseAlertModel();
+        //---------------------
+        //Alert Model functions
+        //---------------------
+        function ShowError(res) {
+            let s = "";
+            try {
+                let objxhr = JSON.parse(res.responseText);
+                s = "status: " + objxhr.status + "<br />title: " + objxhr.title + "<br />traceId: " + objxhr.traceId + "<br />type: " + objxhr.type + "<br />errors: " + objxhr.errors
             }
-
-            function api_GetCourse() {
-                return new Promise(function (resolve, reject) { 
-                    $.ajax({
-                        url: API + "Courses/",
-                        type: 'GET',
-                        success: function (result, status, xhr) {
-                            resolve(result);
-                        },
-                        error: function (xhr, status, error) {
-                            reject(xhr);
-                        }
-                    });
-                });
+            catch (err) {
+                s = "status: " + res.status + " " + res.statusText + "<br /> " + res.responseText.slice(0, 150) + "......";
             }
+            AlertModel(s, "");
+        }
 
-            function ShowError(res) {
-                let s = "";
-                try {
-                    let objxhr = JSON.parse(res.responseText);
-                    s = "status: " + objxhr.status + "<br />title: " + objxhr.title + "<br />traceId: " + objxhr.traceId + "<br />type: " + objxhr.type + "<br />errors: " + objxhr.errors
-                }
-                catch (err) {
-                    s = "status: " + res.status + " " + res.statusText + "<br /> " + res.responseText.slice(0, 150) + "......";
-                }
-                AlertModel(s, "");
-            }
-
-            function AlertModel(str, link) {
-                $('#AlertModel').modal();
-                $('#mtxtalert').html(str);
-                if (link.length > 0) {
-                    $("#malertComfirm").attr("onclick", link);
-                    $("#malertComfirm").show();
-                } else {
-                    $("#malertComfirm").attr("onclick", "");
-                    $("#malertComfirm").hide();
-                }
-            }
-
-            function CloseAlertModel() {
-                $('#AlertModel').modal('hide');
-                $('#mtxtalert').html("");
+        function AlertModel(str, link) {
+            $('#AlertModel').modal();
+            $('#mtxtalert').html(str);
+            if (link.length > 0) {
+                $("#malertComfirm").attr("onclick", link);
+                $("#malertComfirm").show();
+            } else {
                 $("#malertComfirm").attr("onclick", "");
+                $("#malertComfirm").hide();
             }
+        }
 
-            function ShowList() {
-                //do card
-                $("#scard h4").html(datatable.lastName + " " + datatable.firstName);
-                $("#scard p").html("ID: " + datatable.id + "<br />Enroll Date: " + datatable.enrollmentDate.slice(0, 10));
+        function CloseAlertModel() {
+            $('#AlertModel').modal('hide');
+            $('#mtxtalert').html("");
+            $("#malertComfirm").attr("onclick", "");
+        }
 
-                //Clear table
-                $("#tbl tbody").empty();
+        //-------------------------------
+        //Display record function for GET
+        //------------------------------
+        function ShowList() {
+            //do card
+            $("#scard h4").html(datatable.lastName + " " + datatable.firstName);
+            $("#scard p").html("ID: " + datatable.id + "<br />Enroll Date: " + datatable.enrollmentDate.slice(0, 10));
 
-                $.each(datatable.enrollments, function (i) {
-                    addrow(datatable.enrollments[i]);
+            //Clear table
+            $("#tbl tbody").empty();
+
+            $.each(datatable.enrollments, function (i) {
+                addrow(datatable.enrollments[i]);
+            });
+        }
+
+        function addrow(row) {
+            var TableRow = "<tr>";
+            TableRow += "<td id='tdcourseid" + row.id + "'>" + row.course.id + "</td>";
+            TableRow += "<td id='tdcourse" + row.id + "'>" + row.course.title + "</td>";
+            TableRow += "<td id='tdgrade" + row.id + "'>" + row.grade + "</td>";
+            TableRow += "<td id='tdaction" + row.id + "'>";
+            TableRow += ButtonEdit("EditData(" + row.id + ")") + " ";
+            TableRow += ButtonDel("DelData(" + row.id + ")");
+            TableRow += "</td></tr> ";
+            $("#tbl").append(TableRow);
+        }
+
+
+        //---------------------------------
+        //Add new record functions for POST
+        //---------------------------------
+        function AddNew() {
+            let cbograde = "<select class='form-control' id='cboGrade'><option></option><option>A</option><option>B</option><option>C</option><option>D</option><option>E</option><option>F</option></select>";
+            //get course name
+            //using promise, wait for async to finish request
+            api_GetCourse().then(function (course) {
+                let cbocourse = "<select class='form-control' id='cboCourse'>";
+                $.each(course, function (i) {
+                    cbocourse += "<option>" + course[i].id + "-" + course[i].title + "</option>";
                 });
-            }
-
-            function addrow(row) {
-                var TableRow = "<tr>";
-                TableRow += "<td id='tdcourseid" + row.id + "'>" + row.course.id + "</td>";
-                TableRow += "<td id='tdcourse" + row.id + "'>" + row.course.title + "</td>";
-                TableRow += "<td id='tdgrade" + row.id + "'>" + row.grade + "</td>";
-                TableRow += "<td id='tdaction" + row.id + "'>";
-                TableRow += ButtonEdit("EditData(" + row.id + ")") + " ";
-                TableRow += ButtonDel("DelData(" + row.id + ")");
-                TableRow += "</td></tr> ";
+                cbocourse += "</select>";
+                let TableRow = "<tr>";
+                TableRow += "<td></td>";
+                TableRow += "<td>" + cbocourse + "</td>";
+                TableRow += "<td>" + cbograde + "</td>";
+                TableRow += "<td>";
+                TableRow += ButtonOK("", "api_Post()") + " ";
+                TableRow += ButtonCancel("CancelAdd()");
+                TableRow += "</td></tr>";
                 $("#tbl").append(TableRow);
-            }
+            }).catch(function (err) {
+                ShowError(xhr);
+            })
+        }
 
-            //Add functions
-            function AddNew() {
-                let cbograde = "<select class='form-control' id='cboGrade'><option></option><option>A</option><option>B</option><option>C</option><option>D</option><option>E</option><option>F</option></select>";
-                //get course name
-                //using promise, wait for async to finish request
-                api_GetCourse().then(function (course) {
-                    let cbocourse = "<select class='form-control' id='cboCourse'>";
-                    $.each(course, function (i) {
-                        cbocourse += "<option>" + course[i].id + "-" + course[i].title + "</option>";
-                    });
-                    cbocourse += "</select>";
-                    let TableRow = "<tr>";
-                    TableRow += "<td></td>";
-                    TableRow += "<td>" + cbocourse + "</td>";
-                    TableRow += "<td>" + cbograde + "</td>";
-                    TableRow += "<td>";
-                    TableRow += ButtonOK("", "api_Post()") + " ";
-                    TableRow += ButtonCancel("CancelAdd()");
-                    TableRow += "</td></tr>";
-                    $("#tbl").append(TableRow);
-                }).catch(function (err) {
-                    ShowError(xhr);
-                })
-            }
+        function CancelAdd() {
+            $('#tbl tr:last').remove();
+        }
 
-            function CancelAdd() {
-                $('#tbl tr:last').remove();
-            }
 
-            //Edit functions
-            function EditData(id) {
-                //backup current text for cancel action
-                $('#tdcourse' + id).data('txt', $('#tdcourse' + id).html());
-                $('#tdgrade' + id).data('txt', $('#tdgrade' + id).html());
+        //-----------------------------
+        //Edit record functions for PUT
+        //-----------------------------
+        function EditData(id) {
+            //backup current text for cancel action
+            $('#tdcourse' + id).data('txt', $('#tdcourse' + id).html());
+            $('#tdgrade' + id).data('txt', $('#tdgrade' + id).html());
 
-                let cbograde = "<select class='form-control' id='cboGrade'><option></option><option>A</option><option>B</option><option>C</option><option>D</option><option>E</option><option>F</option></select>";
-                //get course name
-                //using promise, wait for async to finish request
-                api_GetCourse().then(function (course) {
-                    let cbocourse = "<select class='form-control' id='cboCourse'>";
-                    $.each(course, function (i) {
-                        cbocourse += "<option>" + course[i].id + "-" + course[i].title + "</option>";
-                    });
-                    cbocourse += "</select>";
-                    $('#tdcourse' + id).html(cbocourse);
-                    $('#tdgrade' + id).html(cbograde);
-                    $('#tdaction' + id).html(ButtonOK("", "api_Put(" + id + ")") + " " + ButtonCancel("CancelEdit(" + id + ")"));
-                }).catch(function (err) {
-                    ShowError(xhr);
-                })
-            }
+            let cbograde = "<select class='form-control' id='cboGrade'><option></option><option>A</option><option>B</option><option>C</option><option>D</option><option>E</option><option>F</option></select>";
+            //get course name
+            //using promise, wait for async to finish request
+            api_GetCourse().then(function (course) {
+                let cbocourse = "<select class='form-control' id='cboCourse'>";
+                $.each(course, function (i) {
+                    cbocourse += "<option>" + course[i].id + "-" + course[i].title + "</option>";
+                });
+                cbocourse += "</select>";
+                $('#tdcourse' + id).html(cbocourse);
+                $('#tdgrade' + id).html(cbograde);
+                $('#tdaction' + id).html(ButtonOK("", "api_Put(" + id + ")") + " " + ButtonCancel("CancelEdit(" + id + ")"));
+            }).catch(function (err) {
+                ShowError(xhr);
+            })
+        }
 
-            function CancelEdit(id) {
-                $('#tdcourse' + id).html($('#tdcourse' + id).data('txt'));
-                $('#tdgrade' + id).html($('#tdgrade' + id).data('txt'));
-                $('#tdaction' + id).html(ButtonEdit("EditData(" + id + ")") + " " + ButtonDel("DelData(" + id + ")"));
-            }
+        function CancelEdit(id) {
+            $('#tdcourse' + id).html($('#tdcourse' + id).data('txt'));
+            $('#tdgrade' + id).html($('#tdgrade' + id).data('txt'));
+            $('#tdaction' + id).html(ButtonEdit("EditData(" + id + ")") + " " + ButtonDel("DelData(" + id + ")"));
+        }
 
-            function DelData(id) {
-                AlertModel("Please comfirm to delete", "api_Delete(" + id + ")");
-            }
-        </script>
+        //-----------------------
+        //Delete record functions
+        //-----------------------
+        function DelData(id) {
+            AlertModel("Please comfirm to delete", "api_Delete(" + id + ")");
+        }
+    </script>
 </body>
 </html>

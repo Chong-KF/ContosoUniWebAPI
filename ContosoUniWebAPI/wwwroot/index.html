@@ -12,8 +12,9 @@
     <!--<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>-->
     <script src="js/myjs.js"></script>
-    <script src="js/location.js"></script>
+
     <!--for wearther-->
+    <script src="js/location.js"></script>
     <script src="js/weather.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.27.0/moment.min.js"></script>
     <style>
@@ -23,6 +24,10 @@
 
         .navbar-toggler-icon {
             background-image: url("data:image/svg+xml;charset=utf8,%3Csvg viewBox='0 0 32 32' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath stroke='rgba(255,102,203, 0.5)' stroke-width='2' stroke-linecap='round' stroke-miterlimit='10' d='M4 8h24M4 16h24M4 24h24'/%3E%3C/svg%3E");
+        }
+
+        .card:hover {
+            box-shadow: 1px 1px 1px grey;
         }
     </style>
 </head>
@@ -54,7 +59,7 @@
         </div>
         <div class="row">
             <div class="col-sm-3">
-                <a href="student.html" class="card h-100">
+                <a href="student.html" class="card stretched-link text-decoration-none">
                     <img class="card-img-top" src="images/school-icon-png-14053.png" alt="Card image">
                     <div id="scard" class="card-body">
                         <h4 id="studentCount" class="card-title"></h4>
@@ -63,7 +68,7 @@
                 </a>
             </div>
             <div class="col-sm-3">
-                <a href="Course.html" class="card h-100">
+                <a href="Course.html" class="card stretched-link text-decoration-none">
                     <img class="card-img-top" src="images/courses-icon-15337.png" alt="Card image">
                     <div id="scard" class="card-body">
                         <h4 id="courseCount" class="card-title">s</h4>
@@ -77,6 +82,7 @@
                     <div class="d-flex justify-content-between card-text" id="userWeatherText">
                         Fetching weather...
                     </div>
+                    <br />
                     <p class="card-text" id="userDistanceText">Waiting to detect Location data...</p>
                 </div>
             </div>
