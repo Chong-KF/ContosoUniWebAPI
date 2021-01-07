@@ -17,7 +17,7 @@ This is the a project for PROGRAMMING IN HTML5 WITH JAVASCRIPT AND CSS3
 
 ## Databse Diagram
 
-![](Database Diagram.png)
+![](DatabaseDiagram.png)
 
 ## Demo
 
