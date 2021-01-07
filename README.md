@@ -10,7 +10,7 @@ This is the a project for PROGRAMMING IN HTML5 WITH JAVASCRIPT AND CSS3
   * Model
   * Table + Pagination
 * Jquery 
-  * sending Ajax API request
+  * sending Ajax API requests
 * ASP.Net Core Web API - as JSON service provider
   * Models
   * Controllers
@@ -22,7 +22,7 @@ This is the a project for PROGRAMMING IN HTML5 WITH JAVASCRIPT AND CSS3
 * http://localhost/api/Courses - GET all course records
 * GET, POST, PUT, DELETE implemented by Ajax in web application
 
-## Databse Diagram
+## Database Diagram
 
 ![](DatabaseDiagram.png)
 
