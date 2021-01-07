@@ -27,8 +27,9 @@ This is the a project for PROGRAMMING IN HTML5 WITH JAVASCRIPT AND CSS3
 ![](DatabaseDiagram.png)
 
 ## Demo
+[](demo.gif)
 
-![](demo.gif)
+https://contosouniwebapi.azurewebsites.net/index.html
 
 ## License
 
